@@ -34,17 +34,29 @@ def listListPlot3SplitMulticolor(listOfSignals, colors = ('black', 'green', 'red
     length = len(listOfSignals) // 3
     #colors = vars.colorVect
     i = 0
-    plt.figure(vars.figureIndex)
+    plt.figure(vars.figureIndex, figsize=(10, 8))
     vars.figureIndex+=1
     for signal in listOfSignals[0:length]:
-        plt.plot(signal, color=colors[0], label="Signal" +str(i))
-        i += 1
+        if i == 0:
+            i+=1
+            plt.plot(signal, color=colors[0], label = "Lipsa Presiune")
+        else:
+            plt.plot(signal, color=colors[0])
+    i=0
     for signal in listOfSignals[length:length*2]:
-        plt.plot(signal, color=colors[1], label="Signal" +str(i))
-        i += 1
+        if i == 0:
+            i += 1
+            plt.plot(signal, color=colors[1], label="Mica Presiune")
+        else:
+            plt.plot(signal, color=colors[1])
+    i = 0
     for signal in listOfSignals[length*2:length*3]:
-        plt.plot(signal, color=colors[2], label="Signal" +str(i))
-        i += 1
+        if i == 0:
+            i += 1
+            plt.plot(signal, color=colors[2], label="Mare Presiune")
+        else:
+            plt.plot(signal, color=colors[2])
+    i = 0
     plt.xlabel("Sample Index"), plt.ylabel("Sample Amplitude"), plt.legend(loc="upper left"), plt.show()
 
 #this only works on tuples of type ("file_name, list_indx, list_vals, xlbl_str, ylbl_str")
@@ -69,13 +81,29 @@ def plotGenericPartial(plotableSamples = (vars.lowPrsMean, vars.hiPrsMean, vars.
 def plotInOrder():
     plt.figure(vars.figureIndex, figsize=(20, 8))
     vars.figureIndex+=1
-    for sample in vars.lowPrsSamples:
-        plt.plot(sample[1], sample[2], color='green')
-    for sample in vars.hiPrsSamples:
-        plt.plot(sample[1], sample[2], color='red')
+    index_label = 0
     for sample in vars.noPrsSamples:
-        plt.plot(sample[1], sample[2], color='black')
-    plt.xlabel(vars.Samples[0][3]), plt.ylabel(vars.Samples[0][4]), plt.show()
+        if index_label == 0:
+            index_label+=1
+            plt.plot(sample[1], sample[2], color='black', label = "noPressure")
+        else:
+            plt.plot(sample[1], sample[2], color='black')
+
+    index_label = 0
+    for sample in vars.lowPrsSamples:
+        if index_label == 0:
+            index_label +=1
+            plt.plot(sample[1], sample[2], color='green', label = "lowPressure")
+        else:
+            plt.plot(sample[1], sample[2], color='green')
+    index_label = 0
+    for sample in vars.hiPrsSamples:
+        if index_label == 0:
+            index_label+=1
+            plt.plot(sample[1], sample[2], color='red', label = "highPressure")
+        else:
+            plt.plot(sample[1], sample[2], color='red')
+    plt.xlabel(vars.Samples[0][3]), plt.ylabel(vars.Samples[0][4]),plt.legend(loc="upper left"), plt.show()
 
 
 def plotKnown():

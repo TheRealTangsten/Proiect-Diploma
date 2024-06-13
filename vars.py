@@ -4,6 +4,9 @@ test_csv = "20231213_162234_square_gel_plexi_light_touch.csv"
 test_csvs = ["20231213_162103_square_gel_plexi_notouch.csv", "20231213_162234_square_gel_plexi_light_touch.csv",
              "20231213_162358_square_gel_plexi_force_touch.csv"]
 
+#path_models = "C:\\Users\\IonescCristi\\PycharmProjects\\Diploma\\Saved_Models"
+path_models = "C:\\Users\\Tangsten\\PycharmProjects\\readFromCSV\\Saved_Models"
+
 nrSamplesTotal = 450
 nrSamplesPerClass = 150
 nrClasses = 3

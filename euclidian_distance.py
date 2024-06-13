@@ -86,15 +86,15 @@ def eucl_plotNormal(plotableSamples, colors = ('green', 'red', 'black'), titl = 
     th01AsVector += vars.th01
     th21AsVector = np.zeros(vars.nrSamplesPerClass)
     th21AsVector += vars.th21
-    print(titl + " vec len: " + str(len(plotableSamples)) + "THs: "+ str(vars.th01) + " " + str(vars.th21))
+    print(titl + " vec len: " + str(len(plotableSamples)) + "\nTHs: "+ str(vars.th01) + " " + str(vars.th21))
     for i in range(0, len(plotableSamples)):
         plt.plot(plotableSamples[i], color=colors[i%len(colors)], label=names[i])
 
     j+=1
-    plt.plot(th01AsVector, color = vars.colorVect[j%len(vars.colorVect)], label = "Threshold 01")
+    plt.plot(th01AsVector, color = vars.colorVect[j%len(vars.colorVect)], label = "Prag 01")
     j+=1
-    plt.plot(th21AsVector, color = vars.colorVect[j % len(vars.colorVect)], label = "Threshold 21")
-    plt.xlabel("Trial number"), plt.ylabel("Eucl_Dist"),plt.legend(loc="upper left"),plt.title(label=titl)
+    plt.plot(th21AsVector, color = vars.colorVect[j % len(vars.colorVect)], label = "Prag 21")
+    plt.xlabel("Numar achizitie"), plt.ylabel("Distanta Euclidiana"),plt.legend(loc="upper left"),plt.title(label=titl)
 
 
 

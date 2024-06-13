@@ -5,6 +5,8 @@ import torch
 import vars
 import numpy as np
 import processing_funs as pf
+import time
+import copy
 
 import plot_funs as plfs
 from sklearn.metrics import confusion_matrix
@@ -16,6 +18,10 @@ ratioTest = 0.2
 #input_size = 21
 #ratioTest = 1 - ratioTrain # Gives bad floating point NUMBER that can't be trusted. Ex: 1 - 0.8 = 0.599999998 (not cool)
 # Samples strucutre: tupl = (name, indx, vals, xlabel, ylabel)
+
+def count_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 def get_MNIST_train():
     mnist_train_data = np.zeros([60000, 784])
     mnist_train_labels = np.zeros(60000)
@@ -165,8 +171,6 @@ def verifyData(wois = 0, woie = 2048):
 class oneLayerMLP(nn.Module):
 
     def __init__(self, in_size, nrLabels = 1):
-        # Pentru a putea folosi mai departe reteaua, este recomandata mostenirea
-        # clasei de baza nn.Module
         super(oneLayerMLP, self).__init__()
 
         #self.hidden_layer0 = nn.Linear(in_size, nr_neurons_layer0)
@@ -227,8 +231,8 @@ class bigMLP(nn.Module):
             last_layer = intermediate_layers[self.additional_layers]
         else:
             last_layer = hidden0_out
-        #output = self.out_nonLin(self.out_layer(last_layer))
-        output = self.out_layer(last_layer)
+        output = self.out_nonLin(self.out_layer(last_layer))
+        #output = self.out_layer(last_layer)
 
         return output
 
@@ -293,6 +297,18 @@ def runPerceptron(wois = 0, woie = 2048, testOnMnist = False, debug = False, nrL
     keep_test_scaling_en = False
     print("Train Labels Shape: ", np.shape(train_labels))
     #for ep in range(nr_epoci):
+
+    max_performance = 0
+    top_model = mlp
+    top_model_state_dict = copy.deepcopy(mlp.state_dict())
+    time_start = time.time() #--------------------TIMER--------------------
+    count = count_parameters(mlp)
+    print("\n---NUMBER OF PARAMETERS OF PERCEPTRON: {} ---\n".format(count))
+
+    tm_inf_s = 0
+    tm_inf_e = 0
+    tm_infs = []
+    tm_inf_avg = 0
     while min_not_changed_counter < 20 and test_acc < 0.9999:
         predictii = []
         etichete = []
@@ -336,7 +352,11 @@ def runPerceptron(wois = 0, woie = 2048, testOnMnist = False, debug = False, nrL
         conf_mat = confusion_matrix(y_pred=predictii, y_true=etichete, labels=list(set(etichete)))
         print("Confusion matrix: \n{0}".format(conf_mat))
         with torch.no_grad():
+            tm_inf_s = time.time()
             curr_pred = mlp.forward(test_data)
+            tm_inf_e = time.time()
+            print("---INFERRENCE TIME: {}s".format((tm_inf_e - tm_inf_s)))
+            tm_infs.append((tm_inf_e - tm_inf_s))
             test_pred = np.argmax(curr_pred.detach().numpy(), axis=1)
             #print("Shape of curr pred:",np.shape(curr_pred))
             #print("Shape of curr test_pred:",np.shape(test_pred))
@@ -352,6 +372,10 @@ def runPerceptron(wois = 0, woie = 2048, testOnMnist = False, debug = False, nrL
             print('\n-------\nAcuratetea la test este {}%\n-------\n'.format(test_acc * 100))
             accuracy_epochs_test.append(test_acc * 100)
             losses_epochs_test.append(loss_test_epoch)
+        if test_acc*100 > max_performance:
+            #torch.save(mlp.state_dict(), vars.path_models)
+            top_model_state_dict = copy.deepcopy(mlp.state_dict())
+            max_performance = test_acc*100
 
         if(epoch_loss < min_losses):
             min_losses = epoch_loss
@@ -363,13 +387,17 @@ def runPerceptron(wois = 0, woie = 2048, testOnMnist = False, debug = False, nrL
         perm = np.random.permutation(train_data.shape[0])
         train_data = train_data[perm, :]
         train_labels = train_labels[perm]
+    time_end = time.time()  # --------------------TIMER--------------------
     plt.figure(),plt.plot(losses_epochs, color="blue", label="Antrenare"),plt.xlabel("Epoci"), plt.ylabel("Valoare pierderi"), plt.title("Pierderi per epoca")
     plt.plot(losses_epochs_test, color="gold", label="Test"), plt.legend(loc="upper left")
     plt.figure(),plt.plot(accuracy_epochs, color="blue", label="Antrenare"), plt.xlabel("Epoci"), plt.ylabel("Acuratete [%]"), plt.title("Progresia acuratetii per epoca")
     plt.plot(accuracy_epochs_test, color="gold", label="Test"), plt.legend(loc="upper left")
 
+    tm_inf_avg = np.average(np.array(tm_infs))
     with torch.no_grad():
-        curr_pred = mlp.forward(test_data)
+        top_model.load_state_dict(top_model_state_dict)
+        curr_pred = top_model.forward(test_data)
+        #curr_pred = mlp.forward(test_data)
         test_pred = np.argmax(curr_pred.detach().numpy(), axis=1)
         # print("Shape of curr pred:",np.shape(curr_pred))
         # print("Shape of curr test_pred:",np.shape(test_pred))
@@ -389,8 +417,10 @@ def runPerceptron(wois = 0, woie = 2048, testOnMnist = False, debug = False, nrL
             test_scaling_en = False
         if test_scaling_counter_correct >= 10:
             keep_test_scaling_en = True
-        print('\n-------\nAcuratetea la test este {}%\n-------\n'.format(test_acc * 100))
+        print('\n-------\nAcuratetea la test este {}%, acurateta maxima recorded: {}%\n-------\n'.format(test_acc * 100, max_performance))
         print('\n-------\nLoss la test este {}%\n-------\n'.format(loss_test_epoch))
+        print('\n-------\nTimp de antrenare este {}%\n-------\n'.format(time_end-time_start))
+        print('\n-------\nTimp de inferenta este {}%\n-------\n'.format(tm_inf_avg))
         predicts_final = np.argmax(curr_pred.clone().detach().numpy(), axis=1)
         conf_mat_final = confusion_matrix(y_pred=predicts_final, y_true=tst_lbls, labels=list(set(tst_lbls)))
         conf_mat_final_graphic = sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix = conf_mat_final)
@@ -458,8 +488,20 @@ def runMLP(wois = 0, woie = 2048, neuronsHL = 100, nrLayers = 1, testOnMnist = F
     test_scaling_counter_correct = 0
     keep_test_scaling_en = False
 
+    max_performance = 0
+    top_model = mlp
+    top_model_state_dict = copy.deepcopy(mlp.state_dict())
+    time_start = time.time()  # --------------------TIMER--------------------
+
+    count = count_parameters(mlp)
+    print("\n---NUMBER OF PARAMETERS OF MLP: {} ---\n".format(count))
     #for ep in range(nr_epoci):
-    while min_not_changed_counter < 20 and test_acc < 0.9999:
+
+    tm_inf_s = 0
+    tm_inf_e = 0
+    tm_infs = []
+    tm_inf_avg = 0
+    while min_not_changed_counter < 20 and test_acc < 0.9999 and min_losses > 0.0000001:
         predictii = []
         etichete = []
 
@@ -470,8 +512,8 @@ def runMLP(wois = 0, woie = 2048, neuronsHL = 100, nrLayers = 1, testOnMnist = F
             # print(batch_labels.shape)
 
             current_predict = mlp.forward(batch_data)
-            print("Shape of current_predict: ",np.shape(current_predict))
-            print("Shape of batch_labels: ", np.shape(batch_labels))
+            #print("Shape of current_predict: ",np.shape(current_predict))
+            #print("Shape of batch_labels: ", np.shape(batch_labels))
             loss = loss_function(current_predict, torch.from_numpy(batch_labels))
             losses_vector[it] = loss
             # print("LOSS: ", loss)
@@ -498,7 +540,11 @@ def runMLP(wois = 0, woie = 2048, neuronsHL = 100, nrLayers = 1, testOnMnist = F
         conf_mat = confusion_matrix(y_pred=predictii, y_true=etichete, labels=list(set(etichete)))
         print("Confusion matrix: \n{0}".format(conf_mat))
         with torch.no_grad():
+            tm_inf_s = time.time()
             curr_pred = mlp.forward(test_data)
+            tm_inf_e = time.time()
+            print("---INFERRENCE TIME: {}s".format((tm_inf_e - tm_inf_s)))
+            tm_infs.append((tm_inf_e - tm_inf_s))
             test_pred = np.argmax(curr_pred.detach().numpy(), axis=1)
             # print("Shape of curr pred:",np.shape(curr_pred))
             # print("Shape of curr test_pred:",np.shape(test_pred))
@@ -515,6 +561,10 @@ def runMLP(wois = 0, woie = 2048, neuronsHL = 100, nrLayers = 1, testOnMnist = F
             accuracy_epochs_test.append(test_acc * 100)
             losses_epochs_test.append(loss_test_epoch)
 
+        if test_acc*100 > max_performance:
+            #torch.save(mlp.state_dict(), vars.path_models)
+            top_model_state_dict = copy.deepcopy(mlp.state_dict())
+            max_performance = test_acc*100
         if (epoch_loss < min_losses):
             min_losses = epoch_loss
             min_not_changed_counter = 0
@@ -526,13 +576,17 @@ def runMLP(wois = 0, woie = 2048, neuronsHL = 100, nrLayers = 1, testOnMnist = F
         perm = np.random.permutation(train_data.shape[0])
         train_data = train_data[perm, :]
         train_labels = train_labels[perm]
+    time_end = time.time()  # --------------------TIMER--------------------
     plt.figure(),plt.plot(losses_epochs, color="blue", label="Antrenare"),plt.xlabel("Epoci"), plt.ylabel("Valoare pierderi"), plt.title("Pierderi per epoca")
     plt.plot(losses_epochs_test, color="gold", label="Test"), plt.legend(loc="upper left")
     plt.figure(),plt.plot(accuracy_epochs, color="blue", label="Antrenare"), plt.xlabel("Epoci"), plt.ylabel("Acuratete [%]"), plt.title("Progresia acuratetii per epoca")
     plt.plot(accuracy_epochs_test, color="gold", label="Test"), plt.legend(loc="upper left")
 
+    tm_inf_avg = np.average(np.array(tm_infs))
     with torch.no_grad():
-        curr_pred = mlp.forward(test_data)
+        top_model.load_state_dict(top_model_state_dict)
+        curr_pred = top_model.forward(test_data)
+        #curr_pred = mlp.forward(test_data)
         test_pred = np.argmax(curr_pred.detach().numpy(), axis=1)
         # print("Shape of curr pred:",np.shape(curr_pred))
         # print("Shape of curr test_pred:",np.shape(test_pred))
@@ -552,8 +606,10 @@ def runMLP(wois = 0, woie = 2048, neuronsHL = 100, nrLayers = 1, testOnMnist = F
             test_scaling_en = False
         if test_scaling_counter_correct >= 10:
             keep_test_scaling_en = True
-        print('\n-------\nAcuratetea la test este {}%\n-------\n'.format(test_acc * 100))
+        print('\n-------\nAcuratetea la test este {}%, acurateta maxima recorded: {}%\n-------\n'.format(test_acc * 100, max_performance))
         print('\n-------\nLoss la test este {}%\n-------\n'.format(loss_test_epoch))
+        print('\n-------\nTimp de antrenare este {}%\n-------\n'.format(time_end-time_start))
+        print('\n-------\nTimp de inferenta este {}%\n-------\n'.format(tm_inf_avg))
         predicts_final = np.argmax(curr_pred.clone().detach().numpy(), axis=1)
         conf_mat_final = confusion_matrix(y_pred=predicts_final, y_true=tst_lbls, labels=list(set(tst_lbls)))
         conf_mat_final_graphic = sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix = conf_mat_final)

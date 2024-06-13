@@ -4,7 +4,7 @@ import scipy.signal
 import vars as vars
 import sklearn
 
-def preprocessVect(in_signal):
+def preprocessVect(in_signal): # EA
     removed_offset = in_signal + np.negative(np.average(in_signal))
     abs_sig = abs(removed_offset)
     lpf_cutoff = 499999.0
@@ -14,13 +14,13 @@ def preprocessVect(in_signal):
     y = scipy.signal.lfilter(b, a, abs_sig)
     return y
 
-def preprocessVectNorm(in_signal, offset = 0):
+def preprocessVectNorm(in_signal, offset = 0): # NORM
     y= in_signal
     y = sklearn.preprocessing.normalize([y])
     z = y[0] + offset
     return z
 
-def preprocessVectNormCombo(in_signal, offset= 0):
+def preprocessVectNormCombo(in_signal, offset= 0): # EA+NORM
     res = preprocessVect(in_signal)
     res2 = preprocessVectNorm(res)
     return res2

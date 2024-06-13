@@ -1,4 +1,6 @@
 import csv
+import time
+
 import numpy as np
 import os
 import matplotlib.colors as colors
@@ -28,7 +30,7 @@ random.seed(0)
 
 path = ""
 #path = "C:\\Users\\IonescCristi\\PycharmProjects\\Diploma\\OldSamples"
-path = "C:\\Users\\Tangsten\\PycharmProjects\\readFromCSV\\450Samples"
+path = "C:\\Users\\Tangsten\\PycharmProjects\\readFromCSV\\450Samples_2"
 
 def setup():
     # sort all csv names in appropriate lists, with values attached!
@@ -61,26 +63,53 @@ def euclidianDemo():
         # test = pf.euclidian_dist(vars.Samples[30][2], vars.noPrsMean[1])
 
         ed.showAllEucls()  # does euclidian distance between WoIs and plots the results for all refrence types
-
         # ed.showAllEucls()
         # vars.colorTest()
         # plfs.simplePlot(vars.Samples[0][2])
 
 def demoPreprocess():
-    signalis = preproc.preprocessVect(vars.lowPrsSamples[0][2])
-    signalis2 = preproc.preprocessVect(vars.noPrsSamples[0][2])
-    # signalis = vars.noPrsSamples[0][2]
-    #plfs.simplePlot(signalis)
-    signals_list = []
-    signals_list.append(signalis)
-    signals_list.append(signalis2)
-    signals_list.append(signalis)
-    plfs.listListPlot3SplitMulticolor(signals_list)
+    data, labels = dataf.getTrainDataPreprocNormCombo()
+    plfs.listListPlot3SplitMulticolor(data)
+
+def computeTimePreprocs():
+    time_start = time.time()
+    for i in range(0, 10):
+        data, labels = dataf.getTrainData()
+        data, labels = dataf.getTestData()
+    time_end = time.time()
+    time_no_preproc = time_end - time_start
+
+    time_start = time.time()
+    for i in range(0, 10):
+        preproc.obtainFullProcessed()
+    time_end = time.time()
+    time_ea = (time_end - time_start)/450
+
+    time_start = time.time()
+    for i in range(0, 10):
+        preproc.obtainFullProcessedNorm()
+    time_end = time.time()
+    time_norm = (time_end - time_start)/450
+
+    time_start = time.time()
+    for i in range(0, 10):
+        preproc.obtainFullProcessedNormCombo()
+    time_end = time.time()
+    time_combo = (time_end - time_start)/450
+    print("Total times:\nNormal: {}[s]\nEA: {}[s]\nNORM: {}[s]\nCombo: {}[s]".format(time_no_preproc, time_ea, time_norm, time_combo))
+    print(
+        "Average times:\nNormal: {}[s]\nEA: {}[s]\nNORM: {}[s]\nCombo: {}[s]".format(time_no_preproc/10, time_ea/10, time_norm/10,
+                                                                                   time_combo/10))
 
 
 setup()
-pf.calcMeans()
-euclidianDemo()
+#pf.calcMeans()
+#euclidianDemo()
+
+perceptron.runPerceptron(testOnMnist = False, preproc2 = True)
+#perceptron.runMLP(neuronsHL=100, testOnMnist=False, preproc2=True, nrLayers=1)
+#CNN.runCNN(testOnMnist=False, preproc2=True)
+#computeTimePreprocs()
 
 #demoPreprocess()
 #plfs.plotGenericFull(plotableSamples = (vars.noPrsSamplesProcessed, vars.lowPrsSamplesProcessed, vars.hiPrsSamplesProcessed))
@@ -88,10 +117,6 @@ euclidianDemo()
 #plfs.plotKnownPreprocessedNorm()
 #prc2.runPerceptron(preproc=True, loPEn=False)
 #prc2.runMLP(preproc=True)
-
-#perceptron.runPerceptron(testOnMnist = False, preproc2=True)
-#perceptron.runMLP(neuronsHL=100, testOnMnist=False, preproc2=True, nrLayers=5)
-#CNN.runCNN(testOnMnist=False, preproc2=True)
 
 #plfs.plotGetdataTest()
 #data, labels = dataf.getTrainDataPreprocNorm()
