@@ -42,14 +42,17 @@ zeroRef = ('zero-ref', np.zeros(2048))
 noPrsSamplesProcessed = []
 lowPrsSamplesProcessed = []
 hiPrsSamplesProcessed = []
+samplesPreprocessed = []
 
 noPrsSamplesProcessedNorm = []
 lowPrsSamplesProcessedNorm = []
 hiPrsSamplesProcessedNorm = []
+samplesPreprocessedNorm = []
 
 noPrsSamplesProcessedNormCombo = []
 lowPrsSamplesProcessedNormCombo = []
 hiPrsSamplesProcessedNormCombo = []
+samplesPreprocessedNormCombo = []
 
 
 #colorVect = ['black','gray','silver','whitesmoke','rosybrown','firebrick','red','darksalmon','sandybrown','moccasin','gold','olivedrab','chartreuse','darkgreen','mediumspringgreen','lightseagreen','darkcyan','deepskyblue','royalblue','mediumpurple',]

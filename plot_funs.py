@@ -4,6 +4,8 @@ import numpy as np
 import vars
 import data_fetching as dataf
 
+
+
 def simplePlot(signal): # plot a singular list
     plt.figure(vars.figureIndex)
     vars.figureIndex+=1
@@ -28,7 +30,7 @@ def listListPlotMonocolor(listOfSignals, color = "green"): # plot lists from lis
     for signal in listOfSignals:
         plt.plot(signal, color=color, label="Signal" +str(i))
         i += 1
-    plt.xlabel("Sample Index"), plt.ylabel("Sample Amplitude"), plt.legend(loc="upper left"), plt.show()
+    plt.xlabel("Index Esantion"), plt.ylabel("Amplitudine Esantion"), plt.legend(loc="upper left"), plt.show()
 
 def listListPlot3SplitMulticolor(listOfSignals, colors = ('black', 'green', 'red')): # plot lists from list
     length = len(listOfSignals) // 3
@@ -57,7 +59,7 @@ def listListPlot3SplitMulticolor(listOfSignals, colors = ('black', 'green', 'red
         else:
             plt.plot(signal, color=colors[2])
     i = 0
-    plt.xlabel("Sample Index"), plt.ylabel("Sample Amplitude"), plt.legend(loc="upper left"), plt.show()
+    plt.xlabel("Index Esantion"), plt.ylabel("Amplitudine Esantion"), plt.legend(loc="upper left"), plt.show()
 
 #this only works on tuples of type ("file_name, list_indx, list_vals, xlbl_str, ylbl_str")
 def plotGenericFull(plotableSamples = (vars.lowPrsSamples, vars.hiPrsSamples, vars.noPrsSamples), colors = ('green', 'red', 'black') ):
@@ -169,6 +171,24 @@ def plotKnownPreprocessedNorm():
         plt.plot(vars.hiPrsSamplesProcessedNorm[i][1], vars.hiPrsSamplesProcessedNorm[i][2], color=colors[2])
 
     plt.xlabel(vars.Samples[0][3]), plt.ylabel(vars.Samples[0][4]), plt.show()
+
+def plotKnownPreprocessedNormCombo():
+    samplesPerClass = vars.nrSamplesPerClass
+    colors = ('green', 'red', 'black')
+    # noPressure
+    for i in range(0, samplesPerClass):
+        plt.plot(vars.noPrsSamplesProcessedNorm[i][1], vars.noPrsSamplesProcessedNormCombo[i][2], color=colors[0])
+
+    # lowPressure
+    for i in range(0, samplesPerClass):
+        plt.plot(vars.lowPrsSamplesProcessedNorm[i][1], vars.lowPrsSamplesProcessedNormCombo[i][2], color=colors[1])
+
+    # highPressure
+    for i in range(0, samplesPerClass):
+        plt.plot(vars.hiPrsSamplesProcessedNorm[i][1], vars.hiPrsSamplesProcessedNormCombo[i][2], color=colors[2])
+
+    plt.xlabel(vars.Samples[0][3]), plt.ylabel(vars.Samples[0][4]), plt.show()
+
 
 def plotGetdataTest():
     data, labels = dataf.getTestData()

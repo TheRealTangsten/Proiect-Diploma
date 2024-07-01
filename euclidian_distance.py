@@ -1,5 +1,7 @@
 import copy
 import csv
+import time
+
 import vars
 import numpy as np
 import matplotlib.pyplot as plt
@@ -119,3 +121,115 @@ def showAllEucls(ws=0, we=2048):
     eucl_plotNormal((vars.euclNoPrs, vars.euclLowPrs, vars.euclHiPrs), titl = "Zero Ref")
     calculateError()
     plt.show()
+
+def showAllEuclsPreproc(ws=0, we=2048, preproc_option = 0):
+    # any - normal, 1 - EA, 2 - NORM, 3 - EA+NORM
+    #choose data
+    time_s = 0
+    time_e = 0
+    time_s_form = 0
+    time_e_form = 0
+
+    working_data = vars.Samples.copy()
+    separated_data = (vars.euclNoPrs, vars.euclLowPrs, vars.euclHiPrs)
+    if preproc_option == 1:
+        working_data.clear()
+        working_data = vars.samplesPreprocessed.copy()
+        time_s_form = time.time()
+        calcMeansAdaptable(signals = (vars.noPrsSamplesProcessed, vars.lowPrsSamplesProcessed, vars.hiPrsSamplesProcessed))
+        time_e_form = time.time()
+    if preproc_option == 2:
+        working_data.clear()
+        working_data = vars.samplesPreprocessedNorm.copy()
+        time_s_form = time.time()
+        calcMeansAdaptable(signals=(vars.noPrsSamplesProcessedNorm, vars.lowPrsSamplesProcessedNorm, vars.hiPrsSamplesProcessedNorm))
+        time_e_form = time.time()
+    if preproc_option == 3:
+        working_data.clear()
+        working_data = vars.samplesPreprocessedNormCombo.copy()
+        time_s_form = time.time()
+        calcMeansAdaptable(signals=(vars.noPrsSamplesProcessedNormCombo, vars.lowPrsSamplesProcessedNormCombo, vars.hiPrsSamplesProcessedNormCombo))
+        time_e_form = time.time()
+
+    print("Formalism time needed: {}\n\n".format(time_e_form - time_s_form))
+
+    time_s = time.time()
+    calc_eucl_dists(working_data, vars.noPrsMean, woi_start=ws, woi_end=we)
+    calculate_ths(1)
+    calculateError()
+    time_e = time.time()
+    eucl_plotNormal((vars.euclNoPrs, vars.euclLowPrs, vars.euclHiPrs), titl="No Pressure Ref")
+    print("Euclidian time needed: {}\n\n".format(time_e-time_s))
+
+    time_s = time.time()
+    calc_eucl_dists(working_data, vars.lowPrsMean, woi_start=ws, woi_end=we)
+    calculate_ths(2)
+    calculateError()
+    separated_data = (vars.euclNoPrs, vars.euclLowPrs, vars.euclHiPrs)
+    eucl_plotNormal(plotableSamples=separated_data, titl = "Low Pressure Ref")
+    print("Euclidian time needed: {}\n\n".format(time_e - time_s))
+
+    time_s = time.time()
+    calc_eucl_dists(working_data, vars.hiPrsMean, woi_start=ws, woi_end=we)
+    calculate_ths(3)
+    calculateError()
+    time_e = time.time()
+    separated_data = (vars.euclNoPrs, vars.euclLowPrs, vars.euclHiPrs)
+    eucl_plotNormal(plotableSamples=separated_data, titl = "High Pressure Ref")
+    print("Euclidian time needed: {}\n\n".format(time_e - time_s))
+
+    time_s = time.time()
+    calc_eucl_dists(working_data, vars.zeroRef, woi_start=ws, woi_end=we)
+    calculate_ths(4)
+    calculateError()
+    time_e = time.time()
+    separated_data = (vars.euclNoPrs, vars.euclLowPrs, vars.euclHiPrs)
+    eucl_plotNormal(plotableSamples=separated_data, titl = "Zero Ref")
+    print("Euclidian time needed: {}\n\n".format(time_e - time_s))
+    plt.show()
+
+def calcMeansAdaptable(signals = (vars.noPrsSamples, vars.lowPrsSamples, vars.hiPrsSamples)):
+    indexes_meaning = []
+    mean = np.zeros(2048)
+
+    for element in signals[0]:
+        indexes_meaning = element[1].copy()
+        ind = 0
+        for sampl in element[2]:
+            mean[ind] += sampl
+            ind += 1
+    mean = mean / len(vars.noPrsSamples)
+    vars.noPrsMean.append(indexes_meaning)
+    vars.noPrsMean.append(mean.copy())
+    vars.noPrsMean.append("No_Pressure")
+    #print(mean)
+    #plt.figure('Mean Values', figsize=(20, 8)), plt.plot(indexes_meaing, mean, color='green'), plt.show()
+    indexes_meaning = []
+    mean = np.zeros(2048)
+    for element in signals[1]:
+        indexes_meaning = element[1].copy()
+        ind = 0
+        for sampl in element[2]:
+            mean[ind] += sampl
+            ind += 1
+    mean = mean / len(vars.noPrsSamples)
+    vars.lowPrsMean.append(indexes_meaning)
+    vars.lowPrsMean.append(mean.copy())
+    vars.lowPrsMean.append("Low_Pressure")
+    #print(mean)
+    #plt.figure('Mean Values', figsize=(20, 8)), plt.plot(indexes_meaing, mean, color='red'), plt.show()
+    indexes_meaning = []
+    mean = np.zeros(2048)
+    for element in signals[2]:
+        indexes_meaning = element[1].copy()
+        ind = 0
+        for sampl in element[2]:
+            mean[ind] += sampl
+            ind += 1
+    mean = mean / len(vars.hiPrsSamples)
+    vars.hiPrsMean.append(indexes_meaning)
+    vars.hiPrsMean.append(mean.copy())
+    vars.hiPrsMean.append("High_Pressure")
+    #print(mean)
+    #plt.figure('Mean Values', figsize=(20, 8)), plt.plot(indexes_meaing, mean, color='black'), plt.show()
+    #plt.figure('Mean Values', figsize=(20, 8)), plt.plot(vars.noPrsMean[0], vars.noPrsMean[1], color='green'), plt.plot(vars.lowPrsMean[0], vars.lowPrsMean[1], color='red'), plt.plot(vars.hiPrsMean[0], vars.hiPrsMean[1], color='black'), plt.show()
