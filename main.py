@@ -130,16 +130,17 @@ def computeTimePreprocs():
 
 setup()
 #computeTimePreprocs()
+demoPreprocess()
 
 #pf.calcMeans()
-#ed.showAllEuclsPreproc(0, 2048, 1)
-demoPreprocess()
 #euclidianDemo(1) # any - raw, 1 - EA, 2 - NORM, 3 - EA+NORM
 
 #perceptron.runPerceptron(testOnMnist = True, preproc2 = False)
 #perceptron.runMLP(neuronsHL=100, testOnMnist=False, preproc2=True, nrLayers=1)
 #CNN.runCNN(testOnMnist=False, preproc2=True)
-#computeTimePreprocs()
+
+
+
 
 #demoPreprocess()
 #plfs.plotGenericFull(plotableSamples = (vars.noPrsSamplesProcessedNormCombo, vars.lowPrsSamplesProcessedNormCombo, vars.hiPrsSamplesProcessedNormCombo))
@@ -157,7 +158,7 @@ demoPreprocess()
 #plfs.pltTest()
 
 
-
+#ed.showAllEuclsPreproc(0, 2048, 1)
 #sci_perc.testScikitPercN(iterations=1)
 #prc_at2.whatsTheProblemDoc()
 #prcEx.iulianPercExample()
